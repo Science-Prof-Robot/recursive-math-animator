@@ -27,6 +27,8 @@ Manim Community (manim) is a community-maintained mathematical animation engine,
 
 **This skill uses Manim Community (`pip install manim`).**
 
+**Default typography:** use **`Roboto`** for all `Text()` (see `references/default_typography.py` and `DESIGN_THEME.md`) unless the user requests another font.
+
 ---
 
 ## Scene Code Structure
@@ -40,7 +42,7 @@ class BasicScene(Scene):
     def construct(self):
         # Create objects
         circle = Circle(radius=1.5, color=RED, fill_opacity=0.5)
-        label = Text("Circle", font_size=24)
+        label = Text("Circle", font="Roboto", font_size=24)
         label.next_to(circle, DOWN)
 
         # Animate

@@ -43,7 +43,7 @@ for these choices explicitly.
 | Mood | Overall feel (e.g. minimal clinical, playful, cinematic, brutalist). |
 | Light / dark | Light mode, dark mode, or high-contrast either way. |
 | Palette | Primary, accent, background hex codes (or reference brand guidelines). |
-| Typography | Title font, body font, or “system default / Manim default”. |
+| Typography | User may override; skill default is **Roboto** (see locked defaults below). |
 | Motion | Snappy vs floaty; calm vs energetic; any easing preferences. |
 | Brand assets | Paths under `assets/` (logo, watermark, icon set). |
 | Deliverable | Aspect ratio (16:9, 9:16), target length, platform (web, social). |
@@ -52,7 +52,7 @@ for these choices explicitly.
 
 - Mood:
 - Palette:
-- Typography:
+- Typography: **Roboto** for all on-screen `Text()` unless the user requests another font. For reproducible renders (CI/Linux), add `Roboto*.ttf` under `assets/fonts/` or install the system package. `MathTex` / `Tex` keep LaTeX math fonts unless the user asks otherwise.
 - Motion:
 - Notes:
 """
@@ -222,7 +222,9 @@ class ManimProject:
         scene_class: Manim scene class name inside the file. If omitted, derived from
         scene_name (scene_1 -> Scene1). Override when your class name does not match.
 
-        output_format: ``movie`` (MP4) or ``gif`` for lightweight previews.
+        output_format: ``movie`` (MP4) or ``gif`` for lightweight previews. The value
+        ``movie`` is kept for backward compatibility; the Manim CLI is invoked with
+        ``--format mp4`` (Manim Community does not accept ``movie`` as a format flag).
 
         export_approval_copy: If True, copy the output into ``exports/approvals/`` with
         a clear filename for stakeholder sign-off (typical with ``output_format='gif'``).
@@ -237,14 +239,15 @@ class ManimProject:
         quality_flag = {"low": "-ql", "medium": "-qm", "high": "-qh"}.get(quality, "-qm")
         
         cls = scene_class or _default_scene_class_name(scene_name)
-        # Manim CLI: scene class after file path; --format gif for approval loops.
+        # Manim CLI expects mp4/gif/webm/mov, not "movie".
+        cli_format = "mp4" if output_format == "movie" else output_format
         cmd = [
             "manim",
             quality_flag,
             str(scene_file),
             cls,
             "--format",
-            output_format,
+            cli_format,
             "--disable_caching",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_path)
@@ -317,7 +320,8 @@ class ManimProject:
         """Low-quality GIF in ``exports/approvals/`` for stakeholder sign-off.
 
         Does not auto-commit (keeps git history focused on approved MP4 passes).
-        After approval, render with ``output_format='movie'`` and higher quality.
+        After approval, render with ``output_format='movie'`` (MP4 via ``--format mp4``)
+        and higher quality.
         """
         return self.render(
             scene_name,

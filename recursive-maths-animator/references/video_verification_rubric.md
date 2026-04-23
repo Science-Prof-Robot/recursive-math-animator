@@ -11,8 +11,19 @@ For each issue, cite **which frame** (`filename`, `t_seconds`, or `pct` from `ma
 - [ ] Nothing is **accidentally cropped** by the frame (partial letters, clipped circles).
 - [ ] **Alignment** looks deliberate: centered vs left-aligned blocks match the plan.
 
+## 1b. Text alignment and overlap (required commentary)
+
+Agents must explicitly assess these in **`VERIFICATION_FEEDBACK.md`** (not only implied by “PASS”):
+
+- [ ] **Multi-line labels**: consistent left or center alignment; no accidental ragged edges; line spacing looks intentional.
+- [ ] **Paired regions** (e.g. two columns, before/after): section titles and body blocks align on a clear grid; comparable rows share baselines where appropriate.
+- [ ] **Connectors read as related**: arrows/lines use sufficient **contrast** and **stroke weight**; endpoints sit on the intended nodes (not floating in whitespace).
+- [ ] **No illegible overlap**: text does not sit under arrows, boxes, or other strokes in a way that harms reading; adjust `buff=`, `shift`, layering (`z_index`), or split lines if needed.
+- [ ] **Insight / callout lines** do not collide with diagrams or safe-area boundaries.
+
 ## 2. Typography and readability
 
+- [ ] **Font family** matches **`DESIGN_THEME.md`** (skill default is **Roboto** for all `Text()` unless the user overrode it).
 - [ ] Font sizes are **legible** at the target delivery size (social vs full HD).
 - [ ] **Contrast** between text and background matches the theme (light-on-light mistakes, etc.).
 - [ ] Line length and label density are not overwhelming in wide shots.
@@ -53,4 +64,4 @@ Still frames cannot prove timing, but they can flag:
 | **P1** | Layout/padding/logic issue that confuses the story; fix before final. |
 | **P2** | Polish: minor spacing, color tweak, optional clarity improvement. |
 
-After review, write **`VERIFICATION_FEEDBACK.md`** in the project root with concrete Manim fixes (objects, `buff=`, `to_edge`, colors, reordering `play` calls), ordered **P0 → P1 → P2**.
+After review, write **`VERIFICATION_FEEDBACK.md`** in the project root with concrete Manim fixes (objects, `buff=`, `to_edge`, colors, reordering `play` calls), ordered **P0 → P1 → P2**. Include the **Layout (alignment & overlap)** section from the skill template (summary must mention alignment and overlap explicitly).

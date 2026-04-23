@@ -5,9 +5,11 @@ Extract evenly spaced frames from a video for agent vision review (Cursor / Clau
 Uses ffprobe for duration and ffmpeg for still frames. Writes manifest.json for each run.
 
 Usage:
-  python extract_verification_frames.py path/to/render.mp4
-  python extract_verification_frames.py path/to/render.mp4 --count 10 --format png
-  python extract_verification_frames.py path/to/render.mp4 --output-dir exports/verification/custom
+  python3 extract_verification_frames.py path/to/render.mp4
+  python3 extract_verification_frames.py path/to/render.mp4 --count 10 --format png
+  python3 extract_verification_frames.py path/to/render.mp4 --output-dir exports/verification/custom
+
+(On many Linux/macOS systems only ``python3`` is available; use that if ``python`` is not found.)
 """
 
 from __future__ import annotations

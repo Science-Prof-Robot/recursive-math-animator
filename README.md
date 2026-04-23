@@ -55,7 +55,7 @@ The skill does **not** call cloud LLM APIs from Python; vision review uses whate
 Quick check from a clone of this repo:
 
 ```bash
-python recursive-maths-animator/scripts/check_environment.py
+python3 recursive-maths-animator/scripts/check_environment.py
 ```
 
 ---
@@ -103,6 +103,8 @@ cp -R recursive-maths-animator .claude/skills/
 
 Restart the editor or start a new agent chat so the skill is loaded.
 
+If the tool reports an **unknown skill**, confirm the path you registered ends with **`recursive-maths-animator/SKILL.md`** (the inner installable folder), not only the Git repository root.
+
 ### From ClawHub
 
 If the package is published under the slug `recursive-maths-animator`:
@@ -122,7 +124,7 @@ New projects created with `ManimProject.init()` get `requirements.txt`, `DESIGN_
 For verification after a render:
 
 ```bash
-python path/to/recursive-maths-animator/scripts/extract_verification_frames.py path/to/output.mp4 --count 8
+python3 path/to/recursive-maths-animator/scripts/extract_verification_frames.py path/to/output.mp4 --count 8
 ```
 
 Full steps and templates are in **`recursive-maths-animator/SKILL.md`**.

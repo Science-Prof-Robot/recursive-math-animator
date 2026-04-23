@@ -12,7 +12,7 @@ This skill ships helper code under `references/` (palette, optional Gemini TTS a
 1. **Design theme first** — Before writing Manim code, ask the user for mood, light/dark, palette (hex or brand refs), typography, motion feel, and any brand assets. Record answers in `DESIGN_THEME.md` (created by `ManimProject.init()`). If the user defers, propose a default theme and get explicit “OK”.
 2. **Pinned dependencies** — Every project keeps a root **`requirements.txt`** (seeded on `init()` from this skill’s template). When you add imports or optional stacks (e.g. Gemini), **update `requirements.txt`** and tell the user to `pip install -r requirements.txt`. For reproducible CI, suggest `pip freeze > requirements.lock.txt` after upgrades.
 3. **Assets live in `assets/`** — Put images, SVGs, and custom fonts under `assets/images`, `assets/svgs`, `assets/fonts`. Keep `scenes/` for Python only so diffs stay readable.
-4. **GIF before final MP4** — For stakeholder approval, produce a **low-quality GIF** (fast, easy to share in chat). Use `ManimProject.render_approval_gif("scene_1")` or `render(..., output_format="gif", export_approval_copy=True)`. After sign-off, render **`output_format="movie"`** (default) at the target quality.
+4. **Optional GIF before final MP4** — When stakeholders need a quick motion check in chat, produce a **low-quality GIF** (`ManimProject.render_approval_gif("scene_1")` or `render(..., output_format="gif", export_approval_copy=True)`). If the user prefers to go straight to MP4 (e.g. silent cut with voiceover added later), **skip the GIF** and render MP4 directly. After any GIF sign-off, render **`output_format="movie"`** (MP4; see Rendering — Manim uses `--format mp4`).
 5. **Verify with vision, then iterate** — After each substantive render, run the **verification loop** below: slice frames, review with the host model’s **vision**, write `VERIFICATION_FEEDBACK.md`, fix Manim code, re-render. Prefer **MP4** for final verification passes; **GIF** is acceptable for quick layout checks.
 
 ## Requirements
@@ -29,6 +29,8 @@ Optional:
 
 ## Using `references/` from your project
 
+The installable skill is the **directory that contains `SKILL.md`** (often `.../recursive-maths-animator/` inside a Git clone), not the repository root above it. If the host says “unknown skill,” confirm that path ends with `recursive-maths-animator/SKILL.md`.
+
 The Quick Start imports `ManimProject` from `manim_versioning`. Add this skill’s `references` directory to `sys.path` (or copy the files into your repo).
 
 ```python
@@ -36,8 +38,10 @@ from pathlib import Path
 import sys
 
 # Path to the installed skill’s references/ folder (adjust if you symlink or copy the skill).
-SKILL_REF = Path.home() / ".cursor/skills/recursive-maths-animator/references"  # example: Cursor user skill
-# SKILL_REF = Path("path/to/manim-video-skill/recursive-maths-animator/references")
+# Cursor (user-wide): ~/.cursor/skills/recursive-maths-animator/references
+# Claude Code (user-wide): ~/.claude/skills/recursive-maths-animator/references
+SKILL_REF = Path.home() / ".cursor/skills/recursive-maths-animator/references"
+# SKILL_REF = Path("path/to/recursive-maths-animator/references")
 
 sys.path.insert(0, str(SKILL_REF.resolve()))
 from manim_versioning import ManimProject
@@ -168,6 +172,7 @@ sys.path.insert(0, '{project_path}/references')
 from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
+from default_typography import DEFAULT_FONT
 from soft_enterprise_palette import SoftColors, EASE_GAS_SPRING
 
 
@@ -196,7 +201,7 @@ class Scene{N}_{Title}(VoiceoverScene):
 
         section_title = Text(
             "{SECTION_TITLE}",
-            font="IBM Plex Mono",
+            font=DEFAULT_FONT,
             font_size=14,
             color=SoftColors.TEXT_SECONDARY
         )
@@ -213,7 +218,7 @@ class Scene{N}_{Title}(VoiceoverScene):
     def create_token(self, text, is_active=False):
         token = Text(
             text,
-            font="Monospace",
+            font=DEFAULT_FONT,
             font_size=24,
             color=SoftColors.TEXT_PRIMARY if is_active else SoftColors.TEXT_SECONDARY,
             weight=MEDIUM
@@ -245,19 +250,23 @@ if __name__ == "__main__":
 
 Defined in `references/soft_enterprise_palette.py` — import `SoftColors` and `EASE_GAS_SPRING` after adding `references` to `sys.path`.
 
+**Default font:** `references/default_typography.py` defines `DEFAULT_FONT` (**Roboto**) for all `Text()` unless the user overrides in `DESIGN_THEME.md`.
+
 ## Rendering
+
+Manim Community expects **`--format mp4`** (or `gif`, `webm`, etc.), not `movie`. The word “movie” in docs means “video file”; `ManimProject.render(..., output_format="movie")` maps to `--format mp4` internally.
 
 ```bash
 # Draft MP4
-manim -ql scene.py SceneClass --format movie --disable_caching
+manim -ql scene.py SceneClass --format mp4 --disable_caching
 
 # Stakeholder approval GIF (small, easy to share)
 manim -ql scene.py SceneClass --format gif --disable_caching
 
 # High quality final MP4
-manim -qh scene.py SceneClass --format movie --disable_caching
+manim -qh scene.py SceneClass --format mp4 --disable_caching
 
-# Versioning helper — final pass
+# Versioning helper — final pass (still uses output_format="movie" in Python = MP4 on CLI)
 project.render("scene_1", quality="high", output_format="movie")
 
 # Versioning helper — approval GIF into exports/approvals/ (no auto-commit)
@@ -280,7 +289,7 @@ This skill does **not** call cloud LLM APIs from Python. **Cursor** or **Claude 
 From the **animation project root** (or pass `--cwd`), run:
 
 ```bash
-python path/to/recursive-maths-animator/scripts/extract_verification_frames.py path/to/render.mp4
+python3 path/to/recursive-maths-animator/scripts/extract_verification_frames.py path/to/render.mp4
 ```
 
 Optional: `--count 10`, `--format png`, `--output-dir exports/verification/my_run`.
@@ -291,7 +300,7 @@ This writes a timestamped folder under `exports/verification/` with JPEG/PNG fra
 
 1. Read **`manifest.json`** and open **every** extracted frame (vision).
 2. Read **`DESIGN_THEME.md`** and the agreed **storyboard / scene plan** (what each beat must prove).
-3. Apply [`references/video_verification_rubric.md`](references/video_verification_rubric.md): padding and safe margins, typography, theme colors, **logical progression** vs plan, motion hints between samples, glitches.
+3. Apply [`references/video_verification_rubric.md`](references/video_verification_rubric.md): padding and safe margins, typography (including font vs `DESIGN_THEME.md`), **text alignment and overlap**, theme colors, **logical progression** vs plan, motion hints between samples, glitches.
 
 ### Step 3 — Write `VERIFICATION_FEEDBACK.md` (project root)
 
@@ -304,7 +313,11 @@ Use this structure:
 PASS | PASS_WITH_ISSUES | FAIL
 
 ## Summary
-2–4 sentences.
+2–4 sentences. Must include at least one sentence on **text alignment** (e.g. columns, baselines, multi-line blocks) and one on **overlap / clutter** (text vs arrows/shapes, cramped `buff=`).
+
+## Layout (alignment & overlap)
+- Alignment: …
+- Overlap / clutter: …
 
 ## Issues
 ### P0 — (title)

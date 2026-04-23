@@ -13,7 +13,7 @@ Color Palette:
 - TEXT_SECONDARY: #4A4A4A (slate gray)
 - ROSE: #B57B8A (muted rose for metadata/accent)
 
-Typography (Inter font):
+Typography (Roboto font — skill default; see default_typography.py):
 - Headings: 16-18px, Semi-Bold, -0.02em letter-spacing
 - Body: 12-13px, Regular, 1.4 line-height
 - Metadata: 10px, Medium, uppercase, +0.05em letter-spacing
@@ -33,6 +33,8 @@ Usage:
 
 from manim import *
 from manim_voiceover import VoiceoverScene
+
+from default_typography import DEFAULT_FONT
 
 
 # =============================================================================
@@ -70,9 +72,9 @@ class SoftColors:
 # =============================================================================
 
 class SoftTypography:
-    """Typography helpers using Inter font."""
-    
-    FONT_FAMILY = "Inter"
+    """Typography helpers using the skill default sans font (Roboto)."""
+
+    FONT_FAMILY = DEFAULT_FONT
     
     # Sizes (in Manim units, roughly pixels/100)
     SIZE_HEADING = 0.18           # 18px
@@ -261,7 +263,7 @@ class SoftContainers:
             text_color: Text color
             border_color: Border color
         """
-        label = Text(text, font="Inter", font_size=12, color=text_color)
+        label = Text(text, font=DEFAULT_FONT, font_size=12, color=text_color)
         
         # Create pill background
         pill = RoundedRectangle(
@@ -334,7 +336,7 @@ class SoftEnterpriseScene(VoiceoverScene):
         """
         subtitle = Text(
             text,
-            font="Inter",
+            font=DEFAULT_FONT,
             font_size=16,
             color=SoftColors.TEXT_SECONDARY,
             weight=MEDIUM
@@ -388,7 +390,7 @@ class ExampleSoftScene(SoftEnterpriseScene):
         # Create content inside container
         content = Text(
             "Warm cream backgrounds\nDot grid patterns\nGas-spring easing",
-            font="Inter",
+            font=DEFAULT_FONT,
             font_size=14,
             color=SoftColors.TEXT_SECONDARY,
             line_spacing=1.4
