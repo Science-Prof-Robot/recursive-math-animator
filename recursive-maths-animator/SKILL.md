@@ -1,15 +1,27 @@
 ---
 name: recursive-maths-animator
-description: Recursive maths animator — Manim-based technical animations with optional voiceover (manim-voiceover), git scene versioning, pinned requirements, asset folders, GIF approval previews, and a vision verification loop (frame extract, multimodal review in Cursor/Claude Code, VERIFICATION_FEEDBACK.md, iterate). Clarify design theme with the user first.
+description: Recursive maths animator — Manim-based technical animations with optional voiceover (manim-voiceover), git scene versioning, pinned requirements, asset folders, GIF approval previews, and a vision verification loop (frame extract, multimodal review in Cursor/Claude Code, VERIFICATION_FEEDBACK.md, iterate). Brief-first workflow: pitch a digestible animation plan and design options, get user approval, then code; lock theme in DESIGN_THEME.md.
 ---
 
 # Recursive maths animator (Manim + voiceover + verification)
 
 This skill ships helper code under `references/` (palette, optional Gemini TTS adapter, `manim_versioning.ManimProject`) and utilities under `scripts/`. Agents should point users at those paths when generating projects.
 
+## Brief-first workflow (do this before any scene code)
+
+Many users want something **cool, shareable, and minimal** — not a wall of technical detail. **Do not** jump straight to `project.init()` + a full scene unless the user explicitly says “just build it.”
+
+1. **Digestible pitch first** — In chat, give a **short** animation brief: one-line takeaway, 3–5 **beats** (what appears, in order, rough seconds each), and why it fits Manim (motion, not static slides). Keep it skimmable; no long tables of API names unless they ask.
+2. **Offer choices** — Present **2–3 palette options** (name each, e.g. “A — ink + paper”, “B — midnight + neon”, “C — warm cream + rose”) with suggested hex or mood words. Offer **aspect ratio** (16:9, 1:1, 9:16) and **tone** (calm / punchy). Let the user pick or mix.
+3. **Wait for approval** — Only after the user confirms (or says “use A + 1:1 + calm”) do you: write **`ANIMATION_BRIEF.md`** (filled) + **`DESIGN_THEME.md`** (locked), then implement the scene.
+4. **Use the maths engine** — Prefer Manim-native motion: `MathTex` / `Tex`, `NumberPlane`, `ParametricFunction`, `Transform` / `ReplacementTransform`, `Indicate`, `ShowPassingFlash`, `LaggedStart`, updaters. Avoid “generic UI explainer” unless that is what they asked for. See **`references/manim_guide.md`** for patterns.
+5. **Shareable quality** — **MP4 at `-qh` / `--quality h`** is the default deliverable for “looks good.” GIF is for **layout checks** only; re-encoding with aggressive `ffmpeg` **crushes** gradients and dark minimal palettes. If they need a small GIF, render a **short** clip, limit colors in the scene, or share **MP4** / link instead.
+
+`ManimProject.init()` seeds **`ANIMATION_BRIEF.md`** with a template; agents replace “DRAFT” content after approval.
+
 ## Operating principles (do these every time)
 
-1. **Design theme first** — Before writing Manim code, ask the user for mood, light/dark, palette (hex or brand refs), typography, motion feel, and any brand assets. Record answers in `DESIGN_THEME.md` (created by `ManimProject.init()`). If the user defers, propose a default theme and get explicit “OK”.
+1. **Design theme + brief** — After the user approves the pitch, record mood, light/dark, chosen palette, typography (default **Roboto** unless overridden), motion, deliverable size, and brand assets in `DESIGN_THEME.md`. Keep the approved story in `ANIMATION_BRIEF.md`.
 2. **Pinned dependencies** — Every project keeps a root **`requirements.txt`** (seeded on `init()` from this skill’s template). When you add imports or optional stacks (e.g. Gemini), **update `requirements.txt`** and tell the user to `pip install -r requirements.txt`. For reproducible CI, suggest `pip freeze > requirements.lock.txt` after upgrades.
 3. **Assets live in `assets/`** — Put images, SVGs, and custom fonts under `assets/images`, `assets/svgs`, `assets/fonts`. Keep `scenes/` for Python only so diffs stay readable.
 4. **Optional GIF before final MP4** — When stakeholders need a quick motion check in chat, produce a **low-quality GIF** (`ManimProject.render_approval_gif("scene_1")` or `render(..., output_format="gif", export_approval_copy=True)`). If the user prefers to go straight to MP4 (e.g. silent cut with voiceover added later), **skip the GIF** and render MP4 directly. After any GIF sign-off, render **`output_format="movie"`** (MP4; see Rendering — Manim uses `--format mp4`).
@@ -100,7 +112,8 @@ After `ManimProject.init()`, the layout includes dependency and theme files plus
 my_animation/
 ├── .git/
 ├── requirements.txt       # Pinned Manim / voiceover; extend when you add packages
-├── DESIGN_THEME.md        # User’s theme answers — fill via conversation before coding
+├── ANIMATION_BRIEF.md     # Short pitch + beats + approved choices (before / while coding)
+├── DESIGN_THEME.md        # User’s theme answers — fill after approval, before heavy code
 ├── assets/
 │   ├── README.md
 │   ├── images/
@@ -256,6 +269,8 @@ Defined in `references/soft_enterprise_palette.py` — import `SoftColors` and `
 
 Manim Community expects **`--format mp4`** (or `gif`, `webm`, etc.), not `movie`. The word “movie” in docs means “video file”; `ManimProject.render(..., output_format="movie")` maps to `--format mp4` internally.
 
+For **shareable, high-quality** output, prefer **`--quality h`** (or `-qh`) MP4. Post-processing GIF with heavy palette reduction often looks **worse** than the source MP4 — especially dark or gradient minimal styles.
+
 ```bash
 # Draft MP4
 manim -ql scene.py SceneClass --format mp4 --disable_caching
@@ -363,6 +378,7 @@ Ordered list of edits to the scene file(s), then re-render and re-run extraction
 8. Keep voiceover text TTS-friendly (plain punctuation, avoid noisy symbols).
 9. Target ~10–15s per scene for short-form vertical if that is the deliverable.
 10. **Close the verification loop** — Do not treat a render as done until frames are extracted and `VERIFICATION_FEEDBACK.md` records a PASS (or user accepts PASS_WITH_ISSUES).
+11. **Pitch before pixels** — For creative or “explainer” requests, use the **Brief-first workflow** so palette and story match what the user considers “cool” before you invest in a long scene file.
 
 ## Troubleshooting
 
@@ -375,6 +391,7 @@ Ordered list of edits to the scene file(s), then re-render and re-run extraction
 | TTS / API limits | Fall back to gTTS or another `SpeechService` |
 | `ffprobe` / frame extract fails | Install full `ffmpeg` package; ensure `ffprobe` is on `PATH` |
 | Empty or black frames | Re-sample with higher `--count` or inspect source video; check `-ss` timing |
+| GIF looks muddy / banded after `ffmpeg` | Deliver **MP4** for final share; shorten the clip, simplify palette in Manim, or use gentler GIF settings — do not treat crushed GIF as the only artifact |
 
 ## Optional follow-on
 

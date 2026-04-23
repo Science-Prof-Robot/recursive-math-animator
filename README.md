@@ -12,7 +12,7 @@ The skill is the folder **`recursive-maths-animator/`**, which contains **`SKILL
 
 | Piece | Role |
 |-------|------|
-| **`SKILL.md`** | When to use Manim, how to agree on a **design theme**, folder layout, rendering, GIF previews, and the **verification loop**. |
+| **`SKILL.md`** | When to use Manim, **brief-first** pitch + user-chosen palettes, **design theme**, folder layout, rendering, GIF/MP4 guidance, and the **verification loop**. |
 | **`references/manim_versioning.py`** | Optional Python helper: git-backed **scene versions**, branches, rollbacks, and render helpers. |
 | **`references/soft_enterprise_palette.py`** | Example color and easing helpers for consistent visuals. |
 | **`references/video_verification_rubric.md`** | Checklist for reviewing **still frames** (padding, logic vs storyboard, theme, glitches). |
@@ -24,8 +24,8 @@ The skill is the folder **`recursive-maths-animator/`**, which contains **`SKILL
 
 **End-to-end flow (high level):**
 
-1. Agent and user lock **layout, colors, and intent** (documented in `DESIGN_THEME.md` inside each animation project).
-2. Agent writes or updates **Manim** scene code; optional **manim-voiceover** for narration.
+1. Agent gives a **short animation brief** and **2–3 palette / format options**; user approves before heavy coding (`ANIMATION_BRIEF.md` + `DESIGN_THEME.md` in each project after `init()`).
+2. Agent writes or updates **Manim** scene code (prefer engine-native motion: `MathTex`, transforms, planes — see `SKILL.md`); optional **manim-voiceover** for narration.
 3. User or agent **renders** MP4/GIF (Manim CLI or `ManimProject.render*`).
 4. **`extract_verification_frames.py`** pulls evenly spaced stills into `exports/verification/…`.
 5. The **same agent session** (with vision) reads those frames against the rubric and storyboard, and writes **`VERIFICATION_FEEDBACK.md`** with concrete fixes.
@@ -136,7 +136,7 @@ The workflow and script both publish the folder **`recursive-maths-animator/`** 
 
 ## Using helpers inside an animation project
 
-New projects created with `ManimProject.init()` get `requirements.txt`, `DESIGN_THEME.md`, `assets/`, `exports/`, etc. Scene code must be able to import `references/` (copy the skill’s `references` into the project or add it to `PYTHONPATH` / `sys.path`); **`SKILL.md`** shows the usual `sys.path` pattern.
+New projects created with `ManimProject.init()` get `requirements.txt`, `ANIMATION_BRIEF.md`, `DESIGN_THEME.md`, `assets/`, `exports/`, etc. Scene code must be able to import `references/` (copy the skill’s `references` into the project or add it to `PYTHONPATH` / `sys.path`); **`SKILL.md`** shows the usual `sys.path` pattern.
 
 For verification after a render:
 

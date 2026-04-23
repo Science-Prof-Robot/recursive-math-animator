@@ -57,6 +57,45 @@ for these choices explicitly.
 - Notes:
 """
 
+# Filled after the user approves the agent's short pitch; see SKILL.md "Brief-first workflow".
+_ANIMATION_BRIEF_BOILERPLATE = """# Animation brief
+
+**Status:** DRAFT — do not write scene code until the user approves this brief (or confirms choices in chat).
+
+## One-liner (what the viewer should feel / learn)
+
+(One or two plain sentences. Avoid jargon unless the audience expects it.)
+
+## Beats (order and ~duration)
+
+| # | Beat (what appears) | ~seconds | Notes |
+|---|---------------------|----------|-------|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+
+## Look & feel (options — user picks)
+
+**Palette (choose one or mix):**
+
+- **A — …** (background / primary / accent hex or names)
+- **B — …**
+- **C — …**
+
+**Aspect / platform:** (e.g. 16:9 web, 1:1 social, 9:16 short)
+
+**Motion:** (calm / snappy / loop-heavy)
+
+## Manim-native ideas (optional — use the engine, not generic slides)
+
+Ideas to discuss: `MathTex` / `Tex`, `NumberPlane` / `NumberLine`, parametric curves, `Transform` / `ReplacementTransform`, `Indicate`, `Flash`, `ShowPassingFlash`, `LaggedStart`, updaters for continuous motion.
+
+## Approved
+
+- [ ] User approved brief and selected palette / format
+- Date / notes:
+"""
+
 
 class ManimProject:
     """Git-versioned Manim animation project manager"""
@@ -78,6 +117,7 @@ class ManimProject:
         - ``exports/verification`` for frame slices + manifests used in the agent vision loop.
         - ``requirements.txt`` (canonical Manim + voiceover pins) unless already present.
         - ``DESIGN_THEME.md`` template unless already present — agents must fill with user.
+        - ``ANIMATION_BRIEF.md`` template unless already present — short pitch + options; code only after approval.
         """
         # Create directories
         self.project_path.mkdir(parents=True, exist_ok=True)
@@ -123,6 +163,10 @@ class ManimProject:
         theme_file = self.project_path / "DESIGN_THEME.md"
         if not theme_file.exists():
             theme_file.write_text(_DESIGN_THEME_BOILERPLATE, encoding="utf-8")
+
+        brief_file = self.project_path / "ANIMATION_BRIEF.md"
+        if not brief_file.exists():
+            brief_file.write_text(_ANIMATION_BRIEF_BOILERPLATE, encoding="utf-8")
         
         # Initialize git repo
         if not (self.project_path / ".git").exists():
