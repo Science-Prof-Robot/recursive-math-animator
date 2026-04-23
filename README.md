@@ -2,7 +2,12 @@
 
 Agent skill for **technical and mathematical animations** using [Manim Community](https://www.manim.community/). It teaches Cursor, Claude Code, or other compatible agents how to structure projects, version scenes with git, optional narration, and a **vision review loop** after each render.
 
-Repository: [github.com/Science-Prof-Robot/recursive-math-animator](https://github.com/Science-Prof-Robot/recursive-math-animator)
+
+### 1-Shot Demo (Single Prompt using Recursive Maths Animator)
+
+https://github.com/user-attachments/assets/e8976362-ad4f-4655-a41b-e21f86bcd253
+
+
 
 ---
 
