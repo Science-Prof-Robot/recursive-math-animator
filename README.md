@@ -115,6 +115,23 @@ npx --yes clawhub@latest install recursive-maths-animator --workdir /path/to/par
 
 That creates `/path/to/parent/skills/recursive-maths-animator/`. Point your agent at that folder the same way as a Git install.
 
+### Maintainers: publish updates to ClawHub
+
+After merging changes under `recursive-maths-animator/`, bump the registry so `npx clawhub install recursive-maths-animator` stays current.
+
+**Option A — local**
+
+```bash
+export CLAWHUB_TOKEN="your-token"   # from clawhub login / account settings; never commit
+./scripts/publish_to_clawhub.sh 1.2.0 "Changelog: what changed in this version"
+```
+
+**Option B — GitHub Actions**
+
+Add the **`CLAWHUB_TOKEN`** repository secret, then run **Actions → Publish to ClawHub** (workflow dispatch) with version and changelog.
+
+The workflow and script both publish the folder **`recursive-maths-animator/`** (contains `SKILL.md`), not the repo root.
+
 ---
 
 ## Using helpers inside an animation project

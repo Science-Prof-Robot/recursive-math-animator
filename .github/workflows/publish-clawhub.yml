@@ -1,0 +1,47 @@
+# Manual publish of recursive-maths-animator/ to ClawHub.
+# Requires repo secret: CLAWHUB_TOKEN
+name: Publish to ClawHub
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver version (e.g. 1.2.0)
+        required: true
+        type: string
+      changelog:
+        description: Changelog text for this release
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Publish skill to ClawHub
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+          CHANGELOG: ${{ github.event.inputs.changelog }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLAWHUB_TOKEN:-}" ]; then
+            echo "Missing CLAWHUB_TOKEN secret. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          npx --yes clawhub@latest login --no-browser --token "${CLAWHUB_TOKEN}"
+          npx --yes clawhub@latest publish ./recursive-maths-animator \
+            --slug recursive-maths-animator \
+            --name "Recursive maths animator" \
+            --version "${{ github.event.inputs.version }}" \
+            --changelog "${CHANGELOG}" \
+            --tags latest
