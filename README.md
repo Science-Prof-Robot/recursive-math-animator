@@ -2,12 +2,9 @@
 
 Agent skill for **technical and mathematical animations** using [Manim Community](https://www.manim.community/). It teaches Cursor, Claude Code, or other compatible agents how to structure projects, version scenes with git, optional narration, and a **vision review loop** after each render.
 
-
 ### 1-Shot Demo (Single Prompt using Recursive Maths Animator)
 
 https://github.com/user-attachments/assets/e8976362-ad4f-4655-a41b-e21f86bcd253
-
-
 
 ---
 
@@ -76,7 +73,7 @@ git clone https://github.com/Science-Prof-Robot/recursive-math-animator.git
 cd recursive-math-animator
 ```
 
-Then copy or symlink the inner skill folder to your tool’s skills location:
+Then copy or symlink the **inner** skill folder (the one that contains `SKILL.md`) to your tool’s skills location.
 
 **Cursor — all projects**
 
@@ -106,36 +103,37 @@ mkdir -p .claude/skills
 cp -R recursive-maths-animator .claude/skills/
 ```
 
-Restart the editor or start a new agent chat so the skill is loaded.
+Restart the editor or start a **new** agent chat so the skill is picked up.
 
 If the tool reports an **unknown skill**, confirm the path you registered ends with **`recursive-maths-animator/SKILL.md`** (the inner installable folder), not only the Git repository root.
 
-### From ClawHub
+---
 
-If the package is published under the slug `recursive-maths-animator`:
+## Example: Cursor
 
-```bash
-npx --yes clawhub@latest install recursive-maths-animator --workdir /path/to/parent
-```
+After the skill is under `.cursor/skills/` or `~/.cursor/skills/`:
 
-That creates `/path/to/parent/skills/recursive-maths-animator/`. Point your agent at that folder the same way as a Git install.
+1. Open the repo where you want the animation (or an empty folder).
+2. Start **Agent** chat and mention you are using the **recursive maths animator** skill so the model loads `SKILL.md` and follows brief-first workflow.
+3. Point the agent at this clone if it needs scripts: e.g. `recursive-maths-animator/scripts/extract_verification_frames.py` inside your workspace.
 
-### Maintainers: publish updates to ClawHub
+**Sample message you can paste:**
 
-After merging changes under `recursive-maths-animator/`, bump the registry so `npx clawhub install recursive-maths-animator` stays current.
+> Use the recursive maths animator skill. I want a 20-second Manim animation: derive the quadratic formula on a dark background with a “midnight + neon” palette, 16:9. Start with a short brief and 2–3 palette options; after I pick one, create `ANIMATION_BRIEF.md` and `DESIGN_THEME.md`, then implement the scene. When we have an MP4, run frame extraction and vision review per the skill.
 
-**Option A — local**
+---
 
-```bash
-export CLAWHUB_TOKEN="your-token"   # from clawhub login / account settings; never commit
-./scripts/publish_to_clawhub.sh 1.2.0 "Changelog: what changed in this version"
-```
+## Example: Claude Code
 
-**Option B — GitHub Actions**
+Same layout under `~/.claude/skills/recursive-maths-animator/` or `.claude/skills/` in a project. In a new session, ask Claude Code to follow **`SKILL.md`** in that folder (brief first, then code, then verification loop).
 
-Add the **`CLAWHUB_TOKEN`** repository secret, then run **Actions → Publish to ClawHub** (workflow dispatch) with version and changelog.
+**Sample message you can paste:**
 
-The workflow and script both publish the folder **`recursive-maths-animator/`** (contains `SKILL.md`), not the repo root.
+> Follow the recursive-maths-animator skill in my skills folder. Animate the unit circle definition of sine and cosine: circle, point moving, projecting to axes, `sin(θ)` and `cos(θ)` labels. Offer calm vs punchy motion and 1:1 vs 16:9; wait for my choices before writing scene code. Use `ManimProject` from the skill’s `references/` if we need git versioning.
+
+**Another sample (lighter touch):**
+
+> Using recursive maths animator: 15-second clip showing why the sum 1 + 2 + … + n is n(n+1)/2 with stacked blocks transforming into a rectangle. No voiceover. After render, extract verification frames and list fixes in `VERIFICATION_FEEDBACK.md`.
 
 ---
 
