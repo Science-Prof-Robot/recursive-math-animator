@@ -1,4 +1,6 @@
 .DS_Store
+# Local ClawHub CLI install metadata (lockfile); do not commit
+.clawhub/
 __pycache__/
 *.pyc
 .venv/
