@@ -178,6 +178,12 @@ ClawHub runs **VirusTotal Code Insight** on published skills. This repo legitima
 
 So if **`clawhub update` does nothing** while reporting that warning, it is expected until you add **`--force`**. The native **`openclaw skills`** flow does not surface the same skip in our smoke tests, but **`clawhub`** users should still know why scripted updates fail.
 
+#### VirusTotal Zenbox (e.g. `skill.zip`) — what the report means
+
+Zenbox and similar **dynamic** sandboxes run the skill bundle in a Windows VM. A **low numeric score with verdict “Non Malicious”** is normal for this repo: the skill only ships **Python helpers**, **Markdown**, and **shell-outs** to `manim`, `ffmpeg`, `ffprobe`, and `git` (see `scripts/` and `references/manim_versioning.py`). Optional **gTTS** or **Gemini** voice paths use the network only when you enable them and set keys.
+
+Heuristic rows such as **non-standard port**, **process in suspended mode**, **sleep during execution**, or **URLs in memory** often come from **the sandbox itself** (e.g. a local LLM or tooling on `192.168.x.x`) or from **Python / Windows DLLs**, not from hidden endpoints in this repository. **MITRE-style mappings** in those reports are **confidence-weighted guesses**, not proof of intent. If you need a clean static review, prefer **file hash / contents** checks against this GitHub source of truth.
+
 **Useful `clawhub` commands**
 
 ```bash

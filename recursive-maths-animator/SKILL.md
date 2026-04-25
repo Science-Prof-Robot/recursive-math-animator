@@ -380,6 +380,10 @@ Ordered list of edits to the scene file(s), then re-render and re-run extraction
 10. **Close the verification loop** — Do not treat a render as done until frames are extracted and `VERIFICATION_FEEDBACK.md` records a PASS (or user accepts PASS_WITH_ISSUES).
 11. **Pitch before pixels** — For creative or “explainer” requests, use the **Brief-first workflow** so palette and story match what the user considers “cool” before you invest in a long scene file.
 
+## Automated sandbox reports (VirusTotal Zenbox, etc.)
+
+If a **dynamic** scan of the skill zip shows subprocesses, `python.exe`, `cmd.exe`, **non-standard ports**, or **URLs** such as `http://192.168.x.x:…/v1/…`, treat the overall **verdict and score** first: this package is **documentation + optional Manim helpers**; it does **not** embed a C2 server or obfuscated payloads. Strings like **`/v1/chat/completions`** in memory usually come from **the analyzer environment** (local model proxy), not from files in this skill. Heuristic “injection” or “non-standard port” flags are common for **any** stack that runs `subprocess` + Python + optional HTTP clients (e.g. gTTS). Compare the zip to this repository when in doubt.
+
 ## Troubleshooting
 
 | Issue | Solution |

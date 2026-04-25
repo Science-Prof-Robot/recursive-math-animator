@@ -377,9 +377,12 @@ ffmpeg -filters 2>&1 | grep subtitles
 
 **Solution**:
 ```python
-# Option 1: Use a proxy
+# Option 1: Use a proxy — set CORP_HTTP_PROXY / CORP_HTTPS_PROXY in your environment
+# (never hardcode proxy URLs or credentials in scene code you commit).
 import os
-os.environ['HTTP_PROXY'] = 'http://proxy:port'
+for dst, src in (("HTTP_PROXY", "CORP_HTTP_PROXY"), ("HTTPS_PROXY", "CORP_HTTPS_PROXY")):
+    if os.environ.get(src):
+        os.environ[dst] = os.environ[src]
 
 # Option 2: Switch to offline TTS
 from manim_voiceover.services.pyttsx3 import Pyttsx3Service
