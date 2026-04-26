@@ -12,7 +12,16 @@ This skill ships helper code under `references/` (palette, optional Gemini TTS a
 Many users want something **cool, shareable, and minimal** — not a wall of technical detail. **Do not** jump straight to `project.init()` + a full scene unless the user explicitly says “just build it.”
 
 1. **Digestible pitch first** — In chat, give a **short** animation brief: one-line takeaway, 3–5 **beats** (what appears, in order, rough seconds each), and why it fits Manim (motion, not static slides). Keep it skimmable; no long tables of API names unless they ask.
-2. **Offer choices** — Present **2–3 palette options** (name each, e.g. “A — ink + paper”, “B — midnight + neon”, “C — warm cream + rose”) with suggested hex or mood words. Offer **aspect ratio** (16:9, 1:1, 9:16) and **tone** (calm / punchy). Let the user pick or mix.
+2. **Offer choices** — Present **2–3 palette options** from the built-in design systems (see below). Use letter labels the user can reply with:
+
+   - **A — Swiss grid** (Inter, clinical, data-forward)
+   - **B — Bauhaus primary** (Space Grotesk, geometric, educational)
+   - **C — Braun minimal** (Work Sans, warm gray, product)
+   - **D — Editorial bold** (Playfair + Inter, dramatic, storytelling)
+   - **E — Apple precision** (DM Sans, cool, tech)
+   - **F — Soft enterprise** (Roboto, warm cream — existing default)
+
+   Also offer **aspect ratio** (16:9, 1:1, 9:16) and **tone** (calm / punchy). Let the user pick or mix.
 3. **Wait for approval** — Only after the user confirms (or says “use A + 1:1 + calm”) do you: write **`ANIMATION_BRIEF.md`** (filled) + **`DESIGN_THEME.md`** (locked), then implement the scene.
 4. **Use the maths engine** — Prefer Manim-native motion: `MathTex` / `Tex`, `NumberPlane`, `ParametricFunction`, `Transform` / `ReplacementTransform`, `Indicate`, `ShowPassingFlash`, `LaggedStart`, updaters. Avoid “generic UI explainer” unless that is what they asked for. See **`references/manim_guide.md`** for patterns.
 5. **Shareable quality** — **MP4 at `-qh` / `--quality h`** is the default deliverable for “looks good.” GIF is for **layout checks** only; re-encoding with aggressive `ffmpeg` **crushes** gradients and dark minimal palettes. If they need a small GIF, render a **short** clip, limit colors in the scene, or share **MP4** / link instead.
@@ -21,7 +30,7 @@ Many users want something **cool, shareable, and minimal** — not a wall of tec
 
 ## Operating principles (do these every time)
 
-1. **Design theme + brief** — After the user approves the pitch, record mood, light/dark, chosen palette, typography (default **Roboto** unless overridden), motion, deliverable size, and brand assets in `DESIGN_THEME.md`. Keep the approved story in `ANIMATION_BRIEF.md`.
+1. **Design theme + brief** — After the user approves the pitch, record mood, light/dark, chosen **design system** (swiss / bauhaus / braun / editorial / apple / soft), typography, motion, deliverable size, and brand assets in `DESIGN_THEME.md`. Keep the approved story in `ANIMATION_BRIEF.md`.
 2. **Pinned dependencies** — Every project keeps a root **`requirements.txt`** (seeded on `init()` from this skill’s template). When you add imports or optional stacks (e.g. Gemini), **update `requirements.txt`** and tell the user to `pip install -r requirements.txt`. For reproducible CI, suggest `pip freeze > requirements.lock.txt` after upgrades.
 3. **Assets live in `assets/`** — Put images, SVGs, and custom fonts under `assets/images`, `assets/svgs`, `assets/fonts`. Keep `scenes/` for Python only so diffs stay readable.
 4. **Optional GIF before final MP4** — When stakeholders need a quick motion check in chat, produce a **low-quality GIF** (`ManimProject.render_approval_gif("scene_1")` or `render(..., output_format="gif", export_approval_copy=True)`). If the user prefers to go straight to MP4 (e.g. silent cut with voiceover added later), **skip the GIF** and render MP4 directly. After any GIF sign-off, render **`output_format="movie"`** (MP4; see Rendering — Manim uses `--format mp4`).
@@ -170,7 +179,65 @@ project.render("scene_1", branch="alt-animation")
 project.merge("scene_1", "alt-animation")
 ```
 
-## Scene template (voiceover + soft palette)
+## Scene templates
+
+### Using a built-in design system (recommended)
+
+```python
+"""
+SCENE {N}: {TITLE}
+{Description}
+~{duration}s, {orientation}
+Design system: {scheme}
+"""
+
+import sys
+sys.path.insert(0, '{project_path}/references')
+
+from manim import *
+from manim_voiceover import VoiceoverScene
+from manim_voiceover.services.gtts import GTTSService
+
+# Import the chosen design system (example: swiss)
+from design_systems.swiss_international import SwissScene, SwissColors, EASE_SWISS_SNAP
+
+
+class Scene{N}_{Title}(SwissScene):
+    """{Description}"""
+
+    def __init__(self, **kwargs):
+        config.pixel_width = {width}
+        config.pixel_height = {height}
+        config.frame_width = {frame_w}
+        config.frame_height = {frame_h}
+        config.frame_rate = 60
+
+        super().__init__(**kwargs)
+
+        self.set_speech_service(GTTSService(lang='en', slow=True))
+
+    def construct(self):
+        self.setup_swiss_background()
+
+        section_title = self.make_heading("{SECTION_TITLE}")
+        section_title.to_edge(UP, buff=0.5)
+        self.add(section_title)
+
+        with self.voiceover(
+            text="{VOICEOVER_LINE_1}"
+        ) as tracker:
+            pass
+
+        self.wait(0.5)
+
+
+if __name__ == "__main__":
+    config.quality = "high_quality"
+    scene = Scene{N}_{Title}()
+    scene.render()
+```
+
+### Legacy: voiceover + soft palette (no design system)
 
 ```python
 """
@@ -258,6 +325,43 @@ if __name__ == "__main__":
     scene = Scene{N}_{Title}()
     scene.render()
 ```
+
+## Design systems
+
+Five built-in designer-inspired aesthetic systems live under `references/design_systems/`. Each is a complete module (colors, typography, motion, containers, background, base scene) following the same API as `soft_enterprise_palette.SoftEnterpriseScene`.
+
+| Key | Name | Designer / Movement | Primary Font | Mood |
+|-----|------|---------------------|--------------|------|
+| `swiss` | Swiss International | Josef Müller-Brockmann | Inter | Strict grid, clinical precision, black/white + restrained red |
+| `bauhaus` | Bauhaus Modern | Herbert Bayer | Space Grotesk | Geometric, primary colors, functional art |
+| `braun` | Braun Minimal | Dieter Rams | Work Sans | Warm light grays, systematic, "less but better" |
+| `editorial` | Editorial Bold | Paula Scher / Pentagram | Playfair Display + Inter | Dramatic scale contrast, deep navy + warm cream |
+| `apple` | Apple Precision | Jony Ive | DM Sans | Cool neutrals, generous whitespace, sleek motion |
+| `soft` | Soft Enterprise | Skill default | Roboto | Warm cream, dot grid, gas-spring easing |
+
+**Import a system directly:**
+
+```python
+import sys
+sys.path.insert(0, 'path/to/references')
+from design_systems.swiss_international import SwissScene, SwissColors, EASE_SWISS_SNAP
+```
+
+**Or use the registry:**
+
+```python
+from design_systems import get_scheme, get_scene_class
+SceneClass = get_scene_class("swiss")   # -> SwissScene
+```
+
+**Fonts are downloaded on demand:**
+
+```python
+from design_systems.font_catalog import install_fonts
+install_fonts("swiss", target_dir="assets/fonts")
+```
+
+All fonts are SIL Open Font License (OFL) 1.1 and freely redistributable. `ManimProject.init(scheme="swiss", install_fonts=True)` can download fonts automatically at project creation.
 
 ## Soft enterprise palette
 
@@ -368,7 +472,7 @@ Ordered list of edits to the scene file(s), then re-render and re-run extraction
 
 ## Best practices
 
-1. **Theme in writing** — `DESIGN_THEME.md` should reflect what the user agreed to; link palette choices to `SoftColors` or a project palette module under `scenes/shared/`.
+1. **Theme in writing** — `DESIGN_THEME.md` should reflect what the user agreed to; link palette choices to the chosen design system (e.g. `SwissColors`, `BauhausColors`) or a project palette module under `scenes/shared/`.
 2. **Requirements drift** — Any new `pip` dependency must appear in `requirements.txt` the same change set.
 3. Version deliberately: use commits per meaningful **final** render; GIF previews may skip auto-commit (see `render_approval_gif`).
 4. Use branches for experiments before merging to main line.

@@ -36,6 +36,19 @@ _DESIGN_THEME_BOILERPLATE = """# Design theme
 Fill this **before** writing scene code. If the user has not specified a theme, **ask**
 for these choices explicitly.
 
+## Built-in design systems
+
+Pick one of the skill's built-in schemes (or override piecemeal):
+
+- **swiss** — Swiss International (Josef Müller-Brockmann). Inter font. Strict grid, clinical precision, black/white + restrained red.
+- **bauhaus** — Bauhaus Modern (Herbert Bayer). Space Grotesk. Primary colors, geometric, functional art.
+- **braun** — Braun Minimal (Dieter Rams). Work Sans. Warm light grays, systematic, "less but better."
+- **editorial** — Editorial Bold (Paula Scher / Pentagram). Playfair Display + Inter. Dramatic scale contrast, deep navy + warm cream.
+- **apple** — Apple Precision (Jony Ive). DM Sans. Cool neutrals, generous whitespace, sleek motion.
+- **soft** — Soft Enterprise (skill default). Roboto. Warm cream backgrounds, dot grid patterns, gas-spring easing.
+
+Fonts are downloaded on demand into `assets/fonts/` via `design_systems.font_catalog.install_fonts()`.
+
 ## Questions to ask
 
 | Topic | Prompt |
@@ -43,6 +56,7 @@ for these choices explicitly.
 | Mood | Overall feel (e.g. minimal clinical, playful, cinematic, brutalist). |
 | Light / dark | Light mode, dark mode, or high-contrast either way. |
 | Palette | Primary, accent, background hex codes (or reference brand guidelines). |
+| Design system | Pick one: swiss / bauhaus / braun / editorial / apple / soft (default). |
 | Typography | User may override; skill default is **Roboto** (see locked defaults below). |
 | Motion | Snappy vs floaty; calm vs energetic; any easing preferences. |
 | Brand assets | Paths under `assets/` (logo, watermark, icon set). |
@@ -50,9 +64,10 @@ for these choices explicitly.
 
 ## Locked decisions
 
+- Design system:
 - Mood:
 - Palette:
-- Typography: **Roboto** for all on-screen `Text()` unless the user requests another font. For reproducible renders (CI/Linux), add `Roboto*.ttf` under `assets/fonts/` or install the system package. `MathTex` / `Tex` keep LaTeX math fonts unless the user asks otherwise.
+- Typography:
 - Motion:
 - Notes:
 """
@@ -76,11 +91,14 @@ _ANIMATION_BRIEF_BOILERPLATE = """# Animation brief
 
 ## Look & feel (options — user picks)
 
-**Palette (choose one or mix):**
+**Design system (choose one):**
 
-- **A — …** (background / primary / accent hex or names)
-- **B — …**
-- **C — …**
+- **A — Swiss grid** (Inter, clinical, data-forward, strict hierarchy)
+- **B — Bauhaus primary** (Space Grotesk, geometric, educational, primary colors)
+- **C — Braun minimal** (Work Sans, warm gray, product, "less but better")
+- **D — Editorial bold** (Playfair + Inter, dramatic, storytelling, magazine confidence)
+- **E — Apple precision** (DM Sans, cool, tech, sleek motion)
+- **F — Soft enterprise** (Roboto, warm cream, existing default — gas-spring easing)
 
 **Aspect / platform:** (e.g. 16:9 web, 1:1 social, 9:16 short)
 
@@ -108,7 +126,7 @@ class ManimProject:
         self.media_path = self.project_path / "media"
         self.config_path = self.project_path / "project.json"
         
-    def init(self) -> None:
+    def init(self, scheme: Optional[str] = None, install_fonts: bool = False) -> None:
         """Initialize project with git repository and folder structure.
 
         Creates:
@@ -118,6 +136,12 @@ class ManimProject:
         - ``requirements.txt`` (canonical Manim + voiceover pins) unless already present.
         - ``DESIGN_THEME.md`` template unless already present — agents must fill with user.
         - ``ANIMATION_BRIEF.md`` template unless already present — short pitch + options; code only after approval.
+
+        Args:
+            scheme: Optional built-in design system key (swiss, bauhaus, braun,
+                editorial, apple, soft). If provided, records it in project config.
+            install_fonts: If True and ``scheme`` is given, downloads the scheme's
+                fonts into ``assets/fonts/`` using ``design_systems.font_catalog``.
         """
         # Create directories
         self.project_path.mkdir(parents=True, exist_ok=True)
@@ -167,6 +191,14 @@ class ManimProject:
         brief_file = self.project_path / "ANIMATION_BRIEF.md"
         if not brief_file.exists():
             brief_file.write_text(_ANIMATION_BRIEF_BOILERPLATE, encoding="utf-8")
+
+        # Optional: download fonts for the chosen design system
+        if scheme and install_fonts:
+            try:
+                self.install_scheme_fonts(scheme)
+            except Exception as exc:
+                print(f"⚠ Font install for '{scheme}' failed: {exc}. "
+                      "System fonts will be used as fallback.")
         
         # Initialize git repo
         if not (self.project_path / ".git").exists():
@@ -179,7 +211,8 @@ class ManimProject:
             "name": self.name,
             "created": datetime.now().isoformat(),
             "scenes": {},
-            "version": "1.0"
+            "version": "1.0",
+            "scheme": scheme,
         }
         self._save_config(config)
         
@@ -188,6 +221,34 @@ class ManimProject:
         self._git("commit", "-m", "Initial project setup", "--allow-empty")
         
         print(f"✓ Project '{self.name}' initialized at {self.project_path}")
+
+    def install_scheme_fonts(self, scheme: str) -> None:
+        """
+        Download and install fonts for a built-in design system into
+        ``assets/fonts/``.
+
+        Args:
+            scheme: One of "swiss", "bauhaus", "braun", "editorial", "apple".
+
+        Raises:
+            RuntimeError: If ``curl`` or font extraction fails.
+        """
+        import sys
+
+        # Ensure the skill's references/ folder is on sys.path so design_systems resolves
+        skill_ref = Path(__file__).resolve().parent
+        if str(skill_ref) not in sys.path:
+            sys.path.insert(0, str(skill_ref))
+
+        from design_systems.font_catalog import (  # type: ignore
+            install_fonts as _install_fonts,
+            write_attribution_file,
+        )
+
+        target = self.project_path / "assets" / "fonts"
+        installed = _install_fonts(scheme, target_dir=target)
+        write_attribution_file(scheme, target_dir=target)
+        print(f"✓ Installed {len(installed)} font files for '{scheme}' into {target}")
     
     def create_scene(self, scene_name: str, code: str, 
                      description: str = "") -> None:
